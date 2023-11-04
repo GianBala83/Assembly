@@ -1,17 +1,17 @@
 ;================================
 ; Projeto de Assembly
 ; Arquitetura I
-; Projessor: Ewerton Salvador
-; Alunos: Giancarlo Silveira Cavalcante             20220055086
-;         Herlan Alef de Lima Nascimento Matricula  20220096712
+; Professor:
+; Ewerton Monteiro Salvador
+; Alunos: 
+; Giancarlo Silveira Cavalcante             20220055086
+; Herlan Alef de Lima Nascimento Matricula  20220096712
 ;================================
 
-;não sei
 .686
 .model flat, stdcall
 option casemap:none
 
-;includes
 include \masm32\include\windows.inc
 include \masm32\include\kernel32.inc
 include \masm32\include\msvcrt.inc
@@ -29,41 +29,38 @@ include \masm32\macros\macros.asm
     str_005 db "Digite a Altura do Retangulo", 0ah, 0h
     str_006 db "Digite a Largura do Retangulo", 0ah, 0h
     str_007 db "Digite a nome da saida do Arquivo [com a extensao]", 0ah, 0h
-
+    
     nome_de_entrada db 100 dup(0)
     nome_de_saida db 100 dup(0)
     tmp_entra_inteiros db 10 dup(0)
-    
     output_Handle dd 0
     input_Handle dd 0
+    
     file_open_Handle dd 0
     file_create_Handle dd 0
-
     write_count dd 0
-
+    
     tmp dd 0
     tmp_2 dd 0
     tmp_3 dd 0
-
-    larguda_da_imagem_debug dd 900
+    
+    Reader_Line_Buffer db 6480 dup(0)
 
 .data?
     coordenada_x dd ?
     coordenada_y dd ?
     altura_retangulo dd ?
     largura_retangulo dd ?
-    
     larguda_da_imagem dd ?
     larguda_da_imagem_bits dd ?
     size_do_arquivo dd ?
-
+    
     file_Buffer dd ?
+    file_Buffer_2 dd ?
     read_Count dd ?
     write_Count dd ?
 
 .code
-
-
 start:
     ;------------------------------------------------------------------
     ;Mensagem de boas vindas!
@@ -74,7 +71,7 @@ start:
     invoke WriteConsole, output_Handle, addr str_001, sizeof str_001 -1, addr write_count, NULL
 
     ;------------------------------------------------------------------
-    ;ler o nome da imagem 54 bits e pixels multiplos de 4
+    ;Ler o nome da imagem 54 bits e pixels multiplos de 4
     ;------------------------------------------------------------------
     push STD_OUTPUT_HANDLE
     call GetStdHandle
@@ -86,7 +83,6 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr nome_de_entrada, sizeof nome_de_entrada, addr write_count, NULL
 
-    ;Tratamento da String
     mov esi, offset nome_de_entrada
     proximo:
     mov al, [esi]
@@ -98,7 +94,7 @@ start:
     mov [esi], al
     
     ;------------------------------------------------------------------
-    ; Ler os 4 numeros
+    ;Ler os 4 numeros
     ;------------------------------------------------------------------
     push STD_OUTPUT_HANDLE
     call GetStdHandle
@@ -110,7 +106,6 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
 
-    ;Tratamento da entrada Part1
     mov esi, offset tmp_entra_inteiros
     proximo_01:
     mov al, [esi]
@@ -120,7 +115,7 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    ;Tratamente da entrada Part2
+	
     invoke atodw, addr tmp_entra_inteiros
     mov coordenada_x, eax
     
@@ -134,7 +129,6 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
 
-    ;Tratamento da entrada Part1
     mov esi, offset tmp_entra_inteiros
     proximo_02:
     mov al, [esi]
@@ -144,7 +138,6 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    ;Tratamente da entrada Part2
     invoke atodw, addr tmp_entra_inteiros
     mov coordenada_y, eax
 
@@ -158,7 +151,6 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
 
-    ;Tratamento da entrada Part1
     mov esi, offset tmp_entra_inteiros
     proximo_04:
     mov al, [esi]
@@ -168,7 +160,6 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    ;Tratamente da entrada Part2
     invoke atodw, addr tmp_entra_inteiros
     mov largura_retangulo, eax
     mov input_Handle, 0
@@ -183,7 +174,6 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
 
-    ;Tratamento da entrada Part1
     mov esi, offset tmp_entra_inteiros
     proximo_03:
     mov al, [esi]
@@ -193,13 +183,12 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    ;Tratamente da entrada Part2
     invoke atodw, addr tmp_entra_inteiros
     mov altura_retangulo, eax
     mov input_Handle, 0
 
     ;------------------------------------------------------------------
-    ;nome da saida do arquivo
+    ;Nome da saida do arquivo
     ;------------------------------------------------------------------
     
     push STD_OUTPUT_HANDLE
@@ -212,7 +201,6 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr nome_de_saida, sizeof nome_de_saida, addr write_count, NULL
 
-    ;Tratamento da String
     mov esi, offset nome_de_saida
     proximo2:
     mov al, [esi]
@@ -223,18 +211,10 @@ start:
     xor al, al
     mov [esi], al
 
-    ;mov eax, 250
-    ;mov coordenada_x, eax
-    ;mov eax, 310
-    ;mov coordenada_y, eax
-
-    ;printf("valor x %d", coordenada_x)
-    ;printf("valor y %d", coordenada_y)
-
-    ;------------------------------------------------------------------
-    ;fazer a copia do arquivo em outro arquivo
-    ;No processo aplicar a censura nas coordenadas x,y desenha o retangulo
-    ;------------------------------------------------------------------
+    ;---------------------------------------------------------------------------------
+    ;Fazer a copia do arquivo em outro arquivo
+    ;No processo aplicar a censura nas coordenadas x,y e desenhar o retangulo preto 
+    ;---------------------------------------------------------------------------------
 
     invoke CreateFile, addr nome_de_entrada, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL
     mov file_open_Handle, eax
@@ -242,15 +222,24 @@ start:
     invoke CreateFile, addr nome_de_saida, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
     mov file_create_Handle, eax
 
-    invoke ReadFile, file_open_Handle, addr file_Buffer, 54, addr read_Count, NULL
-    invoke WriteFile, file_create_Handle, addr file_Buffer, 54, addr write_Count, NULL
+    invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, 18, addr read_Count, NULL
+    invoke WriteFile, file_create_Handle, addr Reader_Line_Buffer, 18, addr write_Count, NULL
 
-    mov ecx, file_Buffer[18]
+    invoke ReadFile, file_open_Handle, addr file_Buffer, 4, addr read_Count, NULL
+    invoke WriteFile, file_create_Handle, addr file_Buffer, 4, addr write_Count, NULL
+
+    invoke ReadFile, file_open_Handle, addr file_Buffer_2, 4, addr read_Count, NULL
+    invoke WriteFile, file_create_Handle, addr file_Buffer_2, 4, addr write_Count, NULL
+
+    invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, 28, addr read_Count, NULL
+    invoke WriteFile, file_create_Handle, addr Reader_Line_Buffer, 28, addr write_Count, NULL
+
+    mov ecx, file_Buffer[0]
     mov larguda_da_imagem, ecx
     xor edx, edx
     xor eax, eax
     mov edx, ecx
-    mov ecx, file_Buffer[22]
+    mov ecx, file_Buffer_2[0]
     mov eax, ecx
     mul edx
     mov edx, eax
@@ -267,13 +256,13 @@ start:
     mov tmp, eax
 
     mov ecx, 0
-    mov tmp_2, ecx ; salv
+    mov tmp_2, ecx
 
     laco_copiar:
         mov eax, larguda_da_imagem_bits
         add tmp, eax
         
-        invoke ReadFile, file_open_Handle, addr file_Buffer, larguda_da_imagem_bits, addr read_Count, NULL
+        invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, larguda_da_imagem_bits, addr read_Count, NULL
         mov eax, 1
         add tmp_2, eax
 
@@ -294,7 +283,7 @@ start:
             call funcao_censura
                     
         continua_sem_censura:
-            invoke WriteFile, file_create_Handle, addr file_Buffer, larguda_da_imagem_bits, addr write_Count, NULL
+            invoke WriteFile, file_create_Handle, addr Reader_Line_Buffer, larguda_da_imagem_bits, addr write_Count, NULL
         
 
         mov edx, 0
@@ -309,14 +298,14 @@ start:
         mov ebp, esp
         sub esp, 8
     
-        mov esi, offset file_Buffer
+        mov esi, offset Reader_Line_Buffer
         mov eax, coordenada_x
         mov DWORD PTR[ebp-4], eax
         mov eax, largura_retangulo
         mov DWORD PTR[ebp-8], eax
 
         mov ecx, DWORD PTR[ebp-4]
-        mov tmp_3, ecx ;salvar
+        mov tmp_3, ecx
         mov eax, 3
         mul ecx
         mov ecx, eax
@@ -334,16 +323,15 @@ start:
         censura_condicao_1:
             cmp tmp_3, ebx
             jg continuar
-            ;jmp censura
             
         censura:
             xor eax, eax
             mov [esi + ecx], eax
         continuar:
             add ecx, 1
+            
             cmp ecx, ebx
             jbe censura_condicao_1
-            ;jmp retorno
         
         retorno:
             mov esp, ebp
@@ -354,6 +342,7 @@ start:
     invoke CloseHandle, file_open_Handle
     invoke CloseHandle, file_create_Handle
 
+    invoke GetLastError
     invoke ExitProcess, 0
 
 end start
