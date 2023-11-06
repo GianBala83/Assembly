@@ -37,6 +37,7 @@ includelib \masm32\lib\masm32.lib
     file_create_Handle dd 0
     write_count dd 0
     
+	; Variavies de controle para loop da censura e copia de imagem
     tmp dd 0
     tmp_2 dd 0
     tmp_3 dd 0
@@ -68,7 +69,7 @@ start:
     invoke WriteConsole, output_Handle, addr str_001, sizeof str_001 -1, addr write_count, NULL
 
     ;------------------------------------------------------------------
-    ;Ler o nome da imagem 54 bits e pixels multiplos de 4
+    ;Ler o nome da imagem
     ;------------------------------------------------------------------
     push STD_OUTPUT_HANDLE
     call GetStdHandle
@@ -79,7 +80,8 @@ start:
     call GetStdHandle
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr nome_de_entrada, sizeof nome_de_entrada, addr write_count, NULL
-
+	
+	; Tratamento da String
     mov esi, offset nome_de_entrada
     proximo:
     mov al, [esi]
@@ -91,8 +93,11 @@ start:
     mov [esi], al
     
     ;------------------------------------------------------------------
-    ;Ler os 4 numeros
+    ;Ler os 4 valores inteiros para demarcação das coordenadas
+	;Os blocos de codigo a baixo se repetem 4 vezes para cada valor
     ;------------------------------------------------------------------
+	
+	;Coordenada X
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -102,7 +107,8 @@ start:
     call GetStdHandle
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
-
+	
+	; Tratamento do Valor Inteiro
     mov esi, offset tmp_entra_inteiros
     proximo_01:
     mov al, [esi]
@@ -112,10 +118,10 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-	
     invoke atodw, addr tmp_entra_inteiros
     mov coordenada_x, eax
     
+	;Coordenada Y
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -125,7 +131,8 @@ start:
     call GetStdHandle
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
-
+	
+	; Tratamento do Valor Inteiro
     mov esi, offset tmp_entra_inteiros
     proximo_02:
     mov al, [esi]
@@ -137,7 +144,9 @@ start:
     mov [esi], al
     invoke atodw, addr tmp_entra_inteiros
     mov coordenada_y, eax
-
+	
+	
+	;Largura do Retangulo
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -147,7 +156,8 @@ start:
     call GetStdHandle
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
-
+	
+	; Tratamento do Valor Inteiro
     mov esi, offset tmp_entra_inteiros
     proximo_04:
     mov al, [esi]
@@ -161,6 +171,8 @@ start:
     mov largura_retangulo, eax
     mov input_Handle, 0
 	
+	
+	;Altura do Retangulo
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -171,6 +183,7 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
 
+	; Tratamento do Valor Inteiro
     mov esi, offset tmp_entra_inteiros
     proximo_03:
     mov al, [esi]
@@ -185,7 +198,7 @@ start:
     mov input_Handle, 0
 
     ;------------------------------------------------------------------
-    ;Nome da saida do arquivo
+    ;Recebimento do nome do arquivo de saida
     ;------------------------------------------------------------------
     
     push STD_OUTPUT_HANDLE
@@ -198,6 +211,7 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr nome_de_saida, sizeof nome_de_saida, addr write_count, NULL
 
+	; Tratamento da String
     mov esi, offset nome_de_saida
     proximo2:
     mov al, [esi]
@@ -231,6 +245,8 @@ start:
     invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, 28, addr read_Count, NULL
     invoke WriteFile, file_create_Handle, addr Reader_Line_Buffer, 28, addr write_Count, NULL
 
+	;Tratamento para pegar a largura da imagem e a Altura
+	;Esses dois valores x 3 + 54(Cabeçalho) = tamanho total da imagem
     mov ecx, file_Buffer[0]
     mov larguda_da_imagem, ecx
     xor edx, edx
@@ -245,18 +261,21 @@ start:
     add eax, 54
     mov size_do_arquivo, eax
 
-
+	; Prepara valores para serem usados nos loop de cópia e censura
     mov eax, 3
     mul larguda_da_imagem
     mov larguda_da_imagem_bits, eax
     mov eax, 54
     mov tmp, eax
-
     mov ecx, 0
     mov tmp_2, ecx
 
+	
     laco_copiar:
-        mov eax, larguda_da_imagem_bits
+        ; Nesse label é feita a leitura do arquivo original por linha
+		; e esse valor é jogado dentro de um array de bytes
+		; e a condição de censura é checada.
+		mov eax, larguda_da_imagem_bits
         add tmp, eax
         
         invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, larguda_da_imagem_bits, addr read_Count, NULL
@@ -290,30 +309,30 @@ start:
         jmp sair_do_loop
         
     funcao_censura:
-
+		;Nesse label os bytes delimitados são censurados.
         push ebp
         mov ebp, esp
         sub esp, 8
     
+		; Aqui são lidos os 3 parametros na "função"
         mov esi, offset Reader_Line_Buffer
         mov eax, coordenada_x
         mov DWORD PTR[ebp-4], eax
         mov eax, largura_retangulo
         mov DWORD PTR[ebp-8], eax
-
         mov ecx, DWORD PTR[ebp-4]
         mov tmp_3, ecx
         mov eax, 3
         mul ecx
         mov ecx, eax
-
         mov ebx, DWORD PTR[ebp-4]
         add ebx, DWORD PTR[ebp-8]
         mov eax, 3
         mul ebx
         mov ebx, eax
 
-        cmp tmp_3, ebx
+		;Aqui é verificado as condições para aplicar a censura
+		cmp tmp_3, ebx
         jle censura_condicao_1
         jmp continuar
 
