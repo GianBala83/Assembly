@@ -29,7 +29,7 @@ includelib \masm32\lib\masm32.lib
     
     nome_de_entrada db 100 dup(0)
     nome_de_saida db 100 dup(0)
-    entra_inteiros db 10 dup(0)
+    entrada_inteiros db 10 dup(0)
     output_Handle dd 0
     input_Handle dd 0
     
@@ -37,7 +37,7 @@ includelib \masm32\lib\masm32.lib
     file_create_Handle dd 0
     write_count dd 0
     
-	; Variavies de controle para loop da censura e copia de imagem
+    ; Variavies de controle para loop da censura e copia de imagem
     controle_copia dd 0
     controle_censura_horizontal dd 0
     controle_censura_vertical dd 0
@@ -106,10 +106,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entrada_inteiros, sizeof entrada_inteiros, addr write_count, NULL
 	
     ; Tratamento do Valor Inteiro
-    mov esi, offset entra_inteiros
+    mov esi, offset entrada_inteiros
     proximo_01:
     mov al, [esi]
     inc esi
@@ -118,7 +118,7 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr entra_inteiros
+    invoke atodw, addr entrada_inteiros
     mov coordenada_x, eax
     
     ;Coordenada Y
@@ -130,10 +130,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entrada_inteiros, sizeof entrada_inteiros, addr write_count, NULL
 	
     ; Tratamento do Valor Inteiro
-    mov esi, offset entra_inteiros
+    mov esi, offset entrada_inteiros
     proximo_02:
     mov al, [esi]
     inc esi
@@ -142,7 +142,7 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr entra_inteiros
+    invoke atodw, addr entrada_inteiros
     mov coordenada_y, eax
 	
 	
@@ -155,10 +155,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entrada_inteiros, sizeof entrada_inteiros, addr write_count, NULL
 	
     ; Tratamento do Valor Inteiro
-    mov esi, offset entra_inteiros
+    mov esi, offset entrada_inteiros
     proximo_04:
     mov al, [esi]
     inc esi
@@ -167,7 +167,7 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr entra_inteiros
+    invoke atodw, addr entrada_inteiros
     mov largura_retangulo, eax
     mov input_Handle, 0
 	
@@ -181,10 +181,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entrada_inteiros, sizeof entrada_inteiros, addr write_count, NULL
 
     ; Tratamento do Valor Inteiro
-    mov esi, offset entra_inteiros
+    mov esi, offset entrada_inteiros
     proximo_03:
     mov al, [esi]
     inc esi
@@ -193,7 +193,7 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr entra_inteiros
+    invoke atodw, addr entrada_inteiros
     mov altura_retangulo, eax
     mov input_Handle, 0
 
