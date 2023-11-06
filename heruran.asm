@@ -29,7 +29,7 @@ includelib \masm32\lib\masm32.lib
     
     nome_de_entrada db 100 dup(0)
     nome_de_saida db 100 dup(0)
-    tmp_entra_inteiros db 10 dup(0)
+    entra_inteiros db 10 dup(0)
     output_Handle dd 0
     input_Handle dd 0
     
@@ -38,9 +38,9 @@ includelib \masm32\lib\masm32.lib
     write_count dd 0
     
 	; Variavies de controle para loop da censura e copia de imagem
-    tmp dd 0
-    tmp_2 dd 0
-    tmp_3 dd 0
+    controle_copia dd 0
+    controle_censura_horizontal dd 0
+    controle_censura_vertical dd 0
     
     Reader_Line_Buffer db 6480 dup(0)
 
@@ -81,7 +81,7 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr nome_de_entrada, sizeof nome_de_entrada, addr write_count, NULL
 	
-	; Tratamento da String
+    ; Tratamento da String
     mov esi, offset nome_de_entrada
     proximo:
     mov al, [esi]
@@ -97,7 +97,7 @@ start:
 	;Os blocos de codigo a baixo se repetem 4 vezes para cada valor
     ;------------------------------------------------------------------
 	
-	;Coordenada X
+    ;Coordenada X
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -106,10 +106,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
 	
-	; Tratamento do Valor Inteiro
-    mov esi, offset tmp_entra_inteiros
+    ; Tratamento do Valor Inteiro
+    mov esi, offset entra_inteiros
     proximo_01:
     mov al, [esi]
     inc esi
@@ -118,10 +118,10 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr tmp_entra_inteiros
+    invoke atodw, addr entra_inteiros
     mov coordenada_x, eax
     
-	;Coordenada Y
+    ;Coordenada Y
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -130,10 +130,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
 	
-	; Tratamento do Valor Inteiro
-    mov esi, offset tmp_entra_inteiros
+    ; Tratamento do Valor Inteiro
+    mov esi, offset entra_inteiros
     proximo_02:
     mov al, [esi]
     inc esi
@@ -142,11 +142,11 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr tmp_entra_inteiros
+    invoke atodw, addr entra_inteiros
     mov coordenada_y, eax
 	
 	
-	;Largura do Retangulo
+    ;Largura do Retangulo
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -155,10 +155,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
 	
-	; Tratamento do Valor Inteiro
-    mov esi, offset tmp_entra_inteiros
+    ; Tratamento do Valor Inteiro
+    mov esi, offset entra_inteiros
     proximo_04:
     mov al, [esi]
     inc esi
@@ -167,12 +167,12 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr tmp_entra_inteiros
+    invoke atodw, addr entra_inteiros
     mov largura_retangulo, eax
     mov input_Handle, 0
 	
 	
-	;Altura do Retangulo
+    ;Altura do Retangulo
     push STD_OUTPUT_HANDLE
     call GetStdHandle
     mov output_Handle, eax
@@ -181,10 +181,10 @@ start:
     push STD_INPUT_HANDLE
     call GetStdHandle
     mov input_Handle, eax
-    invoke ReadConsole, input_Handle, addr tmp_entra_inteiros, sizeof tmp_entra_inteiros, addr write_count, NULL
+    invoke ReadConsole, input_Handle, addr entra_inteiros, sizeof entra_inteiros, addr write_count, NULL
 
-	; Tratamento do Valor Inteiro
-    mov esi, offset tmp_entra_inteiros
+    ; Tratamento do Valor Inteiro
+    mov esi, offset entra_inteiros
     proximo_03:
     mov al, [esi]
     inc esi
@@ -193,7 +193,7 @@ start:
     dec esi
     xor al, al
     mov [esi], al
-    invoke atodw, addr tmp_entra_inteiros
+    invoke atodw, addr entra_inteiros
     mov altura_retangulo, eax
     mov input_Handle, 0
 
@@ -211,7 +211,7 @@ start:
     mov input_Handle, eax
     invoke ReadConsole, input_Handle, addr nome_de_saida, sizeof nome_de_saida, addr write_count, NULL
 
-	; Tratamento da String
+    ; Tratamento da String
     mov esi, offset nome_de_saida
     proximo2:
     mov al, [esi]
@@ -245,8 +245,8 @@ start:
     invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, 28, addr read_Count, NULL
     invoke WriteFile, file_create_Handle, addr Reader_Line_Buffer, 28, addr write_Count, NULL
 
-	;Tratamento para pegar a largura da imagem e a Altura
-	;Esses dois valores x 3 + 54(Cabeçalho) = tamanho total da imagem
+    ;Tratamento para pegar a largura da imagem e a Altura
+    ;Esses dois valores x 3 + 54(Cabeçalho) = tamanho total da imagem
     mov ecx, file_Buffer[0]
     mov larguda_da_imagem, ecx
     xor edx, edx
@@ -261,38 +261,38 @@ start:
     add eax, 54
     mov size_do_arquivo, eax
 
-	; Prepara valores para serem usados nos loop de cópia e censura
+    ; Prepara valores para serem usados nos loop de cópia e censura
     mov eax, 3
     mul larguda_da_imagem
     mov larguda_da_imagem_bits, eax
     mov eax, 54
-    mov tmp, eax
+    mov controle_copia, eax
     mov ecx, 0
-    mov tmp_2, ecx
+    mov controle_censura_horizontal, ecx
 
 	
     laco_copiar:
         ; Nesse label é feita a leitura do arquivo original por linha
-		; e esse valor é jogado dentro de um array de bytes
-		; e a condição de censura é checada.
-		mov eax, larguda_da_imagem_bits
-        add tmp, eax
+	  ; e esse valor é jogado dentro de um array de bytes
+	  ; e a condição de censura é checada.
+	  mov eax, larguda_da_imagem_bits
+        add controle_copia, eax
         
         invoke ReadFile, file_open_Handle, addr Reader_Line_Buffer, larguda_da_imagem_bits, addr read_Count, NULL
         mov eax, 1
-        add tmp_2, eax
+        add controle_censura_horizontal, eax
 
         mov ecx, coordenada_y
                 
         mov ebx, coordenada_y
         add ebx, altura_retangulo
 
-        cmp tmp_2, ecx
+        cmp controle_censura_horizontal, ecx
         jge chamada_de_funcao_censura
         jmp continua_sem_censura
 
         chamada_de_funcao_censura:
-            cmp tmp_2, ebx
+            cmp controle_censura_horizontal, ebx
             jle chamada_de_funcao_censura_2
             jmp continua_sem_censura
         chamada_de_funcao_censura_2:
@@ -304,24 +304,24 @@ start:
 
         mov edx, 0
         mov edx, size_do_arquivo
-        cmp tmp, edx
+        cmp controle_copia, edx
         jl laco_copiar
         jmp sair_do_loop
         
     funcao_censura:
-		;Nesse label os bytes delimitados são censurados.
+	  ;Nesse label os bytes delimitados são censurados.
         push ebp
         mov ebp, esp
         sub esp, 8
     
-		; Aqui são lidos os 3 parametros na "função"
+	  ; Aqui são lidos os 3 parametros na "função"
         mov esi, offset Reader_Line_Buffer
         mov eax, coordenada_x
         mov DWORD PTR[ebp-4], eax
         mov eax, largura_retangulo
         mov DWORD PTR[ebp-8], eax
         mov ecx, DWORD PTR[ebp-4]
-        mov tmp_3, ecx
+        mov controle_censura_vertical, ecx
         mov eax, 3
         mul ecx
         mov ecx, eax
@@ -331,18 +331,20 @@ start:
         mul ebx
         mov ebx, eax
 
-		;Aqui é verificado as condições para aplicar a censura
-		cmp tmp_3, ebx
+	  ;Aqui é verificado as condições para aplicar a censura
+        cmp controle_censura_vertical, ebx
         jle censura_condicao_1
         jmp continuar
 
         censura_condicao_1:
-            cmp tmp_3, ebx
+            cmp controle_censura_vertical, ebx
             jg continuar
             
         censura:
             xor eax, eax
-            mov [esi + ecx], eax
+            mov [esi + ecx], al
+			mov [esi + ecx+1], al
+			mov [esi + ecx+2], al
         continuar:
             add ecx, 1
             
